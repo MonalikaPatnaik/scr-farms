@@ -1,13 +1,48 @@
 
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Menu, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, X, ShoppingCart, LogIn, LogOut, User } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from '@/hooks/use-toast';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Get cart item count
+  const { data: cartCount = 0 } = useQuery({
+    queryKey: ['cartCount', user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select('id', { count: 'exact' })
+        .eq('user_id', user.id);
+        
+      if (error) {
+        console.error('Error fetching cart count:', error);
+        return 0;
+      }
+      
+      return data.length;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +59,15 @@ const Navbar = () => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been signed out successfully."
+    });
+    navigate('/');
+  };
 
   const menuItems = [
     { title: 'Home', path: '/' },
@@ -61,7 +105,50 @@ const Navbar = () => {
                 {item.title}
               </Link>
             ))}
-            <Button className="ml-4 bg-brand-red hover:bg-brand-red/90 text-white">Order Now</Button>
+            
+            {/* Cart Icon with Badge */}
+            <Link 
+              to="/cart" 
+              className="px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-brand-cream relative"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-brand-red text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+            
+            {/* Authentication */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem disabled>
+                    <span className="text-sm truncate max-w-[150px]">{user.email}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                className="ml-4 bg-brand-red hover:bg-brand-red/90 text-white"
+                asChild
+              >
+                <Link to="/auth">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Navigation Toggle */}
@@ -93,7 +180,40 @@ const Navbar = () => {
               {item.title}
             </Link>
           ))}
-          <Button className="w-full mt-4 bg-brand-red hover:bg-brand-red/90 text-white">Order Now</Button>
+          
+          <Link
+            to="/cart"
+            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-brand-cream hover:text-brand-red flex items-center"
+            onClick={closeMenu}
+          >
+            <ShoppingCart className="h-5 w-5 mr-2" />
+            Cart
+            {cartCount > 0 && (
+              <span className="ml-2 bg-brand-red text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+          
+          {user ? (
+            <div className="block px-3 py-2 rounded-md text-base font-medium hover:bg-brand-cream hover:text-brand-red">
+              <button onClick={handleSignOut} className="flex items-center w-full">
+                <LogOut className="h-5 w-5 mr-2" />
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/auth"
+              className="block px-3 py-2 rounded-md text-base font-medium hover:bg-brand-cream hover:text-brand-red"
+              onClick={closeMenu}
+            >
+              <div className="flex items-center">
+                <LogIn className="h-5 w-5 mr-2" />
+                Sign In
+              </div>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

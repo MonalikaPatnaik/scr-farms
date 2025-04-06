@@ -4,6 +4,9 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ProductCardProps {
   title: string;
@@ -15,6 +18,68 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ title, image, price, unit, description, id }) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const handleAddToCart = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to add items to your cart",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Check if the product is already in the cart
+      const { data: existingCartItem } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('product_id', id.toString())
+        .single();
+
+      if (existingCartItem) {
+        // Update quantity if already in cart
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity: existingCartItem.quantity + 1, updated_at: new Date().toISOString() })
+          .eq('id', existingCartItem.id);
+
+        if (error) throw error;
+      } else {
+        // Add new item to cart
+        const { error } = await supabase
+          .from('cart_items')
+          .insert({
+            user_id: session.user.id,
+            product_id: id.toString(),
+            quantity: 1
+          });
+
+        if (error) throw error;
+      }
+
+      // Invalidate cart query to refresh the cart
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+
+      toast({
+        title: "Added to cart",
+        description: `${title} has been added to your cart.`,
+      });
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem adding the item to your cart.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <motion.div 
       className="glass-panel overflow-hidden flex flex-col h-full"
@@ -63,6 +128,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ title, image, price, unit, de
             <Button 
               size="sm" 
               className="flex-1 bg-brand-red hover:bg-brand-red/90 text-white"
+              onClick={handleAddToCart}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Add

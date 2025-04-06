@@ -6,13 +6,19 @@ import { ShoppingCart, Heart, Check, Truck, Star, ArrowLeft, ShoppingBag } from 
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { products } from '../data/products';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // Find product by ID
   const product = products.find(p => p.id.toString() === id);
@@ -26,23 +32,91 @@ const ProductDetail = () => {
     );
   }
 
-  const handleAddToCart = () => {
-    // We would normally dispatch to a cart state manager here
-    setIsAddedToCart(true);
-    toast({
-      title: "Added to cart",
-      description: `${product.title} (${quantity}) has been added to your cart.`,
-    });
-    setTimeout(() => setIsAddedToCart(false), 2000);
+  const handleAddToCart = async () => {
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to add items to your cart",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+
+    setIsAddingToCart(true);
+    try {
+      // Check if the product is already in the cart
+      const { data: existingCartItem } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('product_id', id)
+        .single();
+
+      if (existingCartItem) {
+        // Update quantity if already in cart
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ 
+            quantity: existingCartItem.quantity + quantity,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingCartItem.id);
+
+        if (error) throw error;
+      } else {
+        // Add new item to cart
+        const { error } = await supabase
+          .from('cart_items')
+          .insert({
+            user_id: user.id,
+            product_id: id,
+            quantity: quantity
+          });
+
+        if (error) throw error;
+      }
+
+      // Invalidate cart query
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+
+      setIsAddedToCart(true);
+      toast({
+        title: "Added to cart",
+        description: `${product.title} (${quantity}) has been added to your cart.`,
+      });
+      setTimeout(() => setIsAddedToCart(false), 2000);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem adding the item to your cart.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
-  const handleBuyNow = () => {
-    toast({
-      title: "Proceeding to checkout",
-      description: `You are buying ${quantity} ${product.title}.`,
-    });
-    // Navigate to checkout or payment page
-    // navigate('/checkout');
+  const handleBuyNow = async () => {
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to proceed to checkout",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      // Add to cart first
+      await handleAddToCart();
+      // Then navigate to checkout
+      navigate('/cart');
+    } catch (error) {
+      console.error("Error with buy now:", error);
+    }
   };
 
   return (
@@ -152,12 +226,16 @@ const ProductDetail = () => {
                 size="lg" 
                 className="flex-1 bg-white border-2 border-brand-red text-brand-red hover:bg-brand-red/10"
                 onClick={handleAddToCart}
-                disabled={isAddedToCart}
+                disabled={isAddedToCart || isAddingToCart}
               >
                 {isAddedToCart ? (
                   <>
                     <Check className="mr-2 h-5 w-5" />
                     Added to Cart
+                  </>
+                ) : isAddingToCart ? (
+                  <>
+                    <span className="mr-2">Adding...</span>
                   </>
                 ) : (
                   <>
@@ -170,6 +248,7 @@ const ProductDetail = () => {
                 size="lg" 
                 className="flex-1 bg-brand-red hover:bg-brand-red/90 text-white"
                 onClick={handleBuyNow}
+                disabled={isAddingToCart}
               >
                 <ShoppingBag className="mr-2 h-5 w-5" />
                 Buy Now
