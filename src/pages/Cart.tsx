@@ -1,13 +1,24 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { products } from '@/data/products';
 import { Button } from '@/components/ui/button';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Product } from '@/types/products';
+
+interface CartItem {
+  id: string;
+  user_id: string;
+  product_id: string;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+  product?: Product;
+}
 
 const Cart = () => {
   const { user } = useAuth();
@@ -16,7 +27,7 @@ const Cart = () => {
   const { toast } = useToast();
 
   // Fetch cart items
-  const { data: cartItems, isLoading, error } = useQuery({
+  const { data: cartItems, isLoading, error } = useQuery<CartItem[]>({
     queryKey: ['cart', user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -27,9 +38,22 @@ const Cart = () => {
         .eq('user_id', user.id);
         
       if (error) throw error;
-      return data || [];
+      return data as CartItem[];
     },
     enabled: !!user,
+  });
+
+  // Fetch product details
+  const { data: products } = useQuery<Product[]>({
+    queryKey: ['products-for-cart'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+        
+      if (error) throw error;
+      return data as Product[];
+    },
   });
 
   // Mutation for updating cart item quantity
@@ -37,7 +61,10 @@ const Cart = () => {
     mutationFn: async ({ id, quantity }: { id: string, quantity: number }) => {
       const { error } = await supabase
         .from('cart_items')
-        .update({ quantity, updated_at: new Date().toISOString() })
+        .update({ 
+          quantity, 
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', id);
         
       if (error) throw error;
@@ -84,7 +111,7 @@ const Cart = () => {
 
   // Find product details for cart items
   const cartWithProducts = cartItems?.map(item => {
-    const product = products.find(p => p.id.toString() === item.product_id);
+    const product = products?.find(p => p.id === item.product_id || p.id.toString() === item.product_id);
     return {
       ...item,
       product
@@ -96,11 +123,11 @@ const Cart = () => {
     return sum + (Number(item.product?.price || 0) * item.quantity);
   }, 0);
 
-  const handleIncreaseQuantity = (item) => {
+  const handleIncreaseQuantity = (item: CartItem) => {
     updateQuantity.mutate({ id: item.id, quantity: item.quantity + 1 });
   };
 
-  const handleDecreaseQuantity = (item) => {
+  const handleDecreaseQuantity = (item: CartItem) => {
     if (item.quantity > 1) {
       updateQuantity.mutate({ id: item.id, quantity: item.quantity - 1 });
     } else {
@@ -155,50 +182,52 @@ const Cart = () => {
             <div className="lg:col-span-2">
               <div className="glass-panel divide-y">
                 {cartWithProducts.map((item) => (
-                  <div key={item.id} className="p-4 flex flex-col sm:flex-row gap-4">
-                    <div className="h-24 w-24 flex-shrink-0">
-                      <img 
-                        src={item.product?.image} 
-                        alt={item.product?.title} 
-                        className="h-full w-full object-cover rounded-md"
-                      />
-                    </div>
-                    
-                    <div className="flex-grow">
-                      <h3 className="font-medium">{item.product?.title}</h3>
-                      <p className="text-sm text-gray-500">₹{item.product?.price} / {item.product?.unit}</p>
+                  item.product && (
+                    <div key={item.id} className="p-4 flex flex-col sm:flex-row gap-4">
+                      <div className="h-24 w-24 flex-shrink-0">
+                        <img 
+                          src={item.product?.image} 
+                          alt={item.product?.title} 
+                          className="h-full w-full object-cover rounded-md"
+                        />
+                      </div>
                       
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="flex items-center">
-                          <button 
-                            onClick={() => handleDecreaseQuantity(item)}
-                            className="p-1 rounded-full border hover:bg-gray-100"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-                          <span className="mx-2">{item.quantity}</span>
-                          <button 
-                            onClick={() => handleIncreaseQuantity(item)}
-                            className="p-1 rounded-full border hover:bg-gray-100"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                        </div>
+                      <div className="flex-grow">
+                        <h3 className="font-medium">{item.product?.title}</h3>
+                        <p className="text-sm text-gray-500">₹{item.product?.price} / {item.product?.unit}</p>
                         
-                        <div className="flex items-center">
-                          <p className="font-semibold mr-4">
-                            ₹{(Number(item.product?.price || 0) * item.quantity).toFixed(2)}
-                          </p>
-                          <button 
-                            onClick={() => handleRemoveItem(item.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="flex items-center">
+                            <button 
+                              onClick={() => handleDecreaseQuantity(item)}
+                              className="p-1 rounded-full border hover:bg-gray-100"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                            <span className="mx-2">{item.quantity}</span>
+                            <button 
+                              onClick={() => handleIncreaseQuantity(item)}
+                              className="p-1 rounded-full border hover:bg-gray-100"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                          
+                          <div className="flex items-center">
+                            <p className="font-semibold mr-4">
+                              ₹{(Number(item.product?.price || 0) * item.quantity).toFixed(2)}
+                            </p>
+                            <button 
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )
                 ))}
               </div>
             </div>

@@ -1,13 +1,38 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
-import { products } from '../data/products';
+import { supabase } from '../integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { Product } from '@/types/products';
 
 const Products = () => {
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+
+  // Fetch products from Supabase
+  const { data: products, isLoading, error } = useQuery<Product[]>({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+      
+      if (error) throw error;
+      return data as Product[];
+    },
+  });
+
+  // Update filtered products when products change
+  useEffect(() => {
+    if (products) {
+      setFilteredProducts(products);
+    }
+  }, [products]);
 
   const handleSearch = (query: string) => {
+    if (!products) return;
+    
     if (query.trim() === '') {
       setFilteredProducts(products);
       return;
@@ -48,7 +73,15 @@ const Products = () => {
         
           {/* Product Grid - Moved inside the same section */}
           <div className="mt-8">
-            {filteredProducts.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl text-gray-600">Loading products...</h3>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <h3 className="text-xl text-gray-600">Error loading products. Please try again.</h3>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-8">
                 <h3 className="text-xl text-gray-600">No products found. Try a different search term.</h3>
               </div>

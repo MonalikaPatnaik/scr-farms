@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -6,11 +7,24 @@ import HeroSection from '@/components/HeroSection';
 import ProductCard from '@/components/ProductCard';
 import BenefitCard from '@/components/BenefitCard';
 import { Button } from '@/components/ui/button';
-import { products } from '../data/products';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../integrations/supabase/client';
+import { Product } from '@/types/products';
 
 const Index = () => {
-  // Get featured products (first 4)
-  const featuredProducts = products.slice(0, 4);
+  // Fetch products from Supabase
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ['featured-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .limit(4);
+      
+      if (error) throw error;
+      return data as Product[];
+    },
+  });
 
   // Animate on scroll
   useEffect(() => {
@@ -100,7 +114,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard
                 key={product.id}
                 id={product.id}

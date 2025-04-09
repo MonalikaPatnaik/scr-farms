@@ -1,6 +1,6 @@
 
 // Product data
-export const products = [
+export let products = [
   {
     id: 1,
     title: "A2 Sahiwal Milk",
@@ -90,3 +90,6 @@ export const products = [
     usageInstructions: "Keep refrigerated. Best consumed within 7-10 days of delivery. Use as a spread, for cooking, or in baking."
   }
 ];
+export const updateProducts = (newProducts: typeof products) => {
+  products = newProducts;
+};

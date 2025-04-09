@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Heart, Check, Truck, Star, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { products } from '../data/products';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { Product } from '@/types/products';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -20,10 +20,30 @@ const ProductDetail = () => {
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Find product by ID
-  const product = products.find(p => p.id.toString() === id);
+  // Fetch product from Supabase
+  const { data: product, isLoading, error } = useQuery<Product>({
+    queryKey: ['product', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data as Product;
+    },
+  });
 
-  if (!product) {
+  if (isLoading) {
+    return (
+      <div className="pt-32 pb-20 text-center">
+        <h2 className="text-2xl font-semibold mb-4">Loading product...</h2>
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="pt-32 pb-20 text-center">
         <h2 className="text-2xl font-semibold mb-4">Product not found</h2>
@@ -174,7 +194,7 @@ const ProductDetail = () => {
             </div>
 
             <p className="text-gray-700 mb-8">
-              {product.fullDescription || product.description}
+              {product.full_description || product.description}
             </p>
 
             {/* Benefits */}
@@ -274,18 +294,18 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Product Description Tabs (could be expanded) */}
+        {/* Product Description Tabs */}
         <div className="mt-20">
           <h2 className="text-2xl font-display font-bold mb-6">Product Details</h2>
           <div className="glass-panel p-6">
             <h3 className="font-semibold text-lg mb-4">Description</h3>
             <p className="text-gray-700 mb-6">
-              {product.fullDescription || `Our ${product.title} is sourced from our farm's Sahiwal cows, which are fed with organic fodder and raised in a natural environment. This product is made using the traditional Bilona method, which preserves all the natural goodness and flavor of the milk.`}
+              {product.full_description || `Our ${product.title} is sourced from our farm's Sahiwal cows, which are fed with organic fodder and raised in a natural environment. This product is made using the traditional Bilona method, which preserves all the natural goodness and flavor of the milk.`}
             </p>
             
             <h3 className="font-semibold text-lg mb-4">How to Use</h3>
             <p className="text-gray-700 mb-6">
-              {product.usageInstructions || `Store in a cool, dry place. Once opened, refrigerate and consume within the recommended time for maximum freshness and flavor.`}
+              {product.usage_instructions || `Store in a cool, dry place. Once opened, refrigerate and consume within the recommended time for maximum freshness and flavor.`}
             </p>
             
             <h3 className="font-semibold text-lg mb-4">Ingredients</h3>

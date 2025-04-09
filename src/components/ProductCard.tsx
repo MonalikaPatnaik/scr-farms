@@ -14,7 +14,7 @@ interface ProductCardProps {
   price: string;
   unit: string;
   description?: string;
-  id: number;
+  id: string | number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ title, image, price, unit, description, id }) => {
@@ -46,7 +46,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ title, image, price, unit, de
         // Update quantity if already in cart
         const { error } = await supabase
           .from('cart_items')
-          .update({ quantity: existingCartItem.quantity + 1, updated_at: new Date().toISOString() })
+          .update({ 
+            quantity: existingCartItem.quantity + 1, 
+            updated_at: new Date().toISOString() 
+          })
           .eq('id', existingCartItem.id);
 
         if (error) throw error;
