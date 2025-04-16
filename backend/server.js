@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import productRoutes from './routes/productRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 dotenv.config();
 
@@ -24,6 +25,9 @@ app.use('/api/products', productRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Payment routes
+app.use('/api/payments', paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

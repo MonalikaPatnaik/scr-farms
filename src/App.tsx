@@ -19,6 +19,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Orders from "./pages/Orders";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
+              <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
             </Routes>
           </AnimatePresence>
           <Footer />

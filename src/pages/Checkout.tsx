@@ -9,6 +9,51 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
+// Razorpay interfaces
+interface RazorpayResponse {
+  razorpay_payment_id?: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+  error?: {
+    code: string;
+    description: string;
+    source: string;
+    step: string;
+    reason: string;
+  };
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  image?: string;
+  prefill: {
+    name: string;
+    contact: string;
+    email: string;
+  };
+  notes: Record<string, string>;
+  theme: {
+    color: string;
+  };
+  handler: (response: RazorpayResponse) => void;
+  modal: {
+    ondismiss: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  close: () => void;
+}
+
+interface WindowWithRazorpay extends Window {
+  Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+}
+
 const Checkout = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -25,6 +70,7 @@ const Checkout = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   // Fetch cart items
   const { data: cartItems, isLoading } = useQuery({
@@ -65,7 +111,7 @@ const Checkout = () => {
 
   // Process order
   const placeOrder = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (paymentId?: string) => {
       if (!user) throw new Error("User not authenticated");
       
       // 1. Create the order
@@ -74,7 +120,7 @@ const Checkout = () => {
         .insert({
           user_id: user.id,
           total: total,
-          status: 'pending'
+          status: paymentId ? 'paid' : 'pending',
         })
         .select('id')
         .single();
@@ -123,6 +169,74 @@ const Checkout = () => {
     }
   });
 
+  // Initialize Razorpay payment
+  const initializeRazorpayPayment = () => {
+    setPaymentProcessing(true);
+    
+    const options: RazorpayOptions = {
+      key: 'rzp_test_N8MLCvpxuLueYZ', // Replace with your Razorpay key ID
+      amount: total * 100, // Razorpay expects amount in paise (1 INR = 100 paise)
+      currency: 'INR',
+      name: 'SCR Farms',
+      description: 'Purchase from SCR Farms',
+      image: '/logo.png', // Your company logo
+      prefill: {
+        name: formData.name,
+        contact: formData.phone,
+        email: user?.email || ''
+      },
+      notes: {
+        address: formData.address
+      },
+      theme: {
+        color: '#E53935' // Match with your brand color
+      },
+      handler: function(response: RazorpayResponse) {
+        // Handle successful payment
+        if (response.razorpay_payment_id) {
+          handlePaymentSuccess(response.razorpay_payment_id);
+        } else {
+          handlePaymentFailure('No payment ID received');
+        }
+      },
+      modal: {
+        ondismiss: function() {
+          setPaymentProcessing(false);
+          toast({
+            title: "Payment cancelled",
+            description: "You have cancelled the payment process.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    const rzp = new (window as unknown as WindowWithRazorpay).Razorpay(options);
+    rzp.open();
+  };
+
+  // Handle successful payment
+  const handlePaymentSuccess = async (paymentId: string) => {
+    try {
+      await placeOrder.mutateAsync(paymentId);
+      setPaymentProcessing(false);
+    } catch (error) {
+      setPaymentProcessing(false);
+      console.error("Error processing order after payment:", error);
+    }
+  };
+
+  // Handle payment failure
+  const handlePaymentFailure = (error: string | Error) => {
+    setPaymentProcessing(false);
+    toast({
+      title: "Payment failed",
+      description: "There was a problem processing your payment. Please try again.",
+      variant: "destructive"
+    });
+    console.error("Payment failed:", error);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -139,11 +253,25 @@ const Checkout = () => {
       return;
     }
     
-    // Place the order
-    try {
-      await placeOrder.mutateAsync();
-    } finally {
-      setIsSubmitting(false);
+    // Load Razorpay script if not already loaded
+    if (!(window as unknown as WindowWithRazorpay).Razorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        initializeRazorpayPayment();
+      };
+      script.onerror = () => {
+        toast({
+          title: "Payment gateway error",
+          description: "Failed to load payment gateway. Please try again later.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+      };
+      document.body.appendChild(script);
+    } else {
+      initializeRazorpayPayment();
     }
   };
 
@@ -254,9 +382,9 @@ const Checkout = () => {
                 <Button
                   type="submit"
                   className="w-full bg-brand-red hover:bg-brand-red/90 mt-6"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || paymentProcessing}
                 >
-                  {isSubmitting ? 'Processing...' : 'Place Order'}
+                  {isSubmitting || paymentProcessing ? 'Processing...' : 'Proceed to Payment'}
                 </Button>
               </form>
             </div>
@@ -301,7 +429,7 @@ const Checkout = () => {
               </div>
               
               <div className="text-sm text-gray-600">
-                <p>Payment Method: Cash on Delivery</p>
+                <p>Payment Method: Online Payment (Razorpay)</p>
                 <p className="mt-2">Estimated Delivery: 1-2 business days</p>
               </div>
             </div>

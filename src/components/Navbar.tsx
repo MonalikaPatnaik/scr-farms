@@ -106,6 +106,9 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+            <Link to="/orders" className="px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-brand-cream hover:text-brand-red">
+              My Orders
+            </Link>
             
             {/* Authentication */}
             {user ? (
