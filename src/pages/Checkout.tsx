@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { products } from '@/data/products';
+import { Tables } from '@/integrations/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -72,6 +72,19 @@ const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
 
+  // Fetch products
+  const { data: products } = useQuery<Tables<'products'>[]>({
+    queryKey: ['products-for-cart'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+        
+      if (error) throw error;
+      return data as Tables<'products'>[];
+    },
+  });
+
   // Fetch cart items
   const { data: cartItems, isLoading } = useQuery({
     queryKey: ['cart', user?.id],
@@ -91,7 +104,7 @@ const Checkout = () => {
 
   // Find product details for cart items
   const cartWithProducts = cartItems?.map(item => {
-    const product = products.find(p => p.id.toString() === item.product_id);
+    const product = products?.find(p => p.id === item.product_id || p.id.toString() === item.product_id);
     return {
       ...item,
       product
