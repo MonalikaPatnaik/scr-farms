@@ -35,7 +35,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-display font-semibold">Quick Links</h3>
             <ul className="space-y-2">
-              <li>
+              {/* <li>
                 <Link to="/" className="text-sm hover:text-brand-red transition-colors">Home</Link>
               </li>
               <li>
@@ -46,7 +46,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/bilona-method" className="text-sm hover:text-brand-red transition-colors">The Bilona Method</Link>
-              </li>
+              </li> */}
               <li>
                 <Link to="/privacy-policy" className="text-sm hover:text-brand-red transition-colors">Privacy Policy</Link>
               </li>
@@ -54,11 +54,17 @@ const Footer = () => {
                 <Link to="/terms" className="text-sm hover:text-brand-red transition-colors">Terms & Conditions</Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm hover:text-brand-red transition-colors">Contact Us</Link>
+                <Link to="/shipping-policy" className="text-sm hover:text-brand-red transition-colors">Shipping Policy</Link>
               </li>
               <li>
-                <Link to="/home-delivery" className="text-sm hover:text-brand-red transition-colors">Home Delivery</Link>
+                <Link to="/cancellations" className="text-sm hover:text-brand-red transition-colors">Cancellations & Refunds</Link>
               </li>
+              <li>
+                <Link to="/contact" className="text-sm hover:text-brand-red transition-colors">Contact Us</Link>
+              </li>
+              {/* <li>
+                <Link to="/home-delivery" className="text-sm hover:text-brand-red transition-colors">Home Delivery</Link>
+              </li> */}
             </ul>
           </div>
 

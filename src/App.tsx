@@ -22,6 +22,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Orders from "./pages/Orders";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
+import ShippingPolicy from "./pages/ShippingPolicy";
+import CancellationsAndRefunds from "./pages/CancellationsAndRefunds";
 
 const queryClient = new QueryClient();
 
@@ -43,12 +45,14 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/shipping-policy" element={<ShippingPolicy />} />
+              <Route path="/cancellations" element={<CancellationsAndRefunds />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
               <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
               <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>
           <Footer />
