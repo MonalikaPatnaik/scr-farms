@@ -97,9 +97,9 @@ const Contact = () => {
                 <h3 className="font-semibold mb-2">Business Hours</h3>
                 <p className="mb-1">Monday - Saturday: 8am - 8pm</p>
                 <p className="mb-3">Sunday: 9am - 6pm</p>
-                <p className="mt-4 text-sm">
+                {/* <p className="mt-4 text-sm">
                   <span className="font-semibold">Note:</span> Orders placed before 4pm will be delivered the next day
-                </p>
+                </p> */}
               </div>
             </div>
             

@@ -74,7 +74,7 @@ const Footer = () => {
             <div className="space-y-2">
               <p className="text-sm">Mon - Sat: 8am - 8pm</p>
               <p className="text-sm">Sunday: 9am - 6pm</p>
-              <p className="text-sm mt-4">Orders placed before 4pm will be delivered next day.</p>
+              {/* <p className="text-sm mt-4">Orders placed before 4pm will be delivered next day.</p> */}
             </div>
             <div className="pt-2">
               <h4 className="text-md font-semibold">Connect With Us</h4>
