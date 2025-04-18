@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PhoneCall, Mail, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
@@ -47,6 +46,12 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/bilona-method" className="text-sm hover:text-brand-red transition-colors">The Bilona Method</Link>
+              </li>
+              <li>
+                <Link to="/privacy-policy" className="text-sm hover:text-brand-red transition-colors">Privacy Policy</Link>
+              </li>
+              <li>
+                <Link to="/terms" className="text-sm hover:text-brand-red transition-colors">Terms & Conditions</Link>
               </li>
               <li>
                 <Link to="/contact" className="text-sm hover:text-brand-red transition-colors">Contact Us</Link>
@@ -100,7 +105,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-6 border-t border-gray-200">
           <p className="text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} SCR Agro Farms. All rights reserved.
+            &copy; {new Date().getFullYear()} SCR Agro Farms. All rights reserved.
           </p>
         </div>
       </div>
