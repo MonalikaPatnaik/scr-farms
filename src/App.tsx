@@ -20,6 +20,7 @@ import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Orders from "./pages/Orders";
+import "./i18n/i18n";
 
 const queryClient = new QueryClient();
 

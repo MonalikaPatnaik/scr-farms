@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Menu, X, ShoppingCart, LogIn, LogOut, User, Settings } from 'lucide-react';
@@ -6,6 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut, isAdmin } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -58,11 +60,11 @@ const Navbar = () => {
   };
 
   const menuItems = [
-    { title: 'Home', path: '/' },
-    { title: 'Products', path: '/products' },
-    { title: 'About', path: '/about' },
-    { title: 'Bilona Method', path: '/bilona-method' },
-    { title: 'Contact', path: '/contact' },
+    { title: t('nav.home'), path: '/' },
+    { title: t('nav.products'), path: '/products' },
+    { title: t('nav.about'), path: '/about' },
+    { title: t('nav.bilonaMethod'), path: '/bilona-method' },
+    { title: t('nav.contact'), path: '/contact' },
   ];
 
   return (
@@ -107,7 +109,7 @@ const Navbar = () => {
               )}
             </Link>
             <Link to="/orders" className="px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-brand-cream hover:text-brand-red">
-              My Orders
+              {t('nav.orders')}
             </Link>
             
             {/* Authentication */}
@@ -127,13 +129,13 @@ const Navbar = () => {
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center">
                         <Settings className="h-4 w-4 mr-2" />
-                        Admin Dashboard
+                        {t('nav.adminDashboard')}
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                    {t('nav.signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -144,10 +146,11 @@ const Navbar = () => {
               >
                 <Link to="/auth">
                   <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
+                  {t('nav.signIn')}
                 </Link>
               </Button>
             )}
+            <LanguageSelector />
           </div>
 
           {/* Mobile Navigation Toggle */}
@@ -186,7 +189,7 @@ const Navbar = () => {
             onClick={closeMenu}
           >
             <ShoppingCart className="h-5 w-5 mr-2" />
-            Cart
+            {t('nav.cart')}
             {cartCount > 0 && (
               <span className="ml-2 bg-brand-red text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {cartCount}
@@ -201,7 +204,7 @@ const Navbar = () => {
               onClick={closeMenu}
             >
               <Settings className="h-5 w-5 mr-2" />
-              Admin Dashboard
+              {t('nav.adminDashboard')}
             </Link>
           )}
           
@@ -209,7 +212,7 @@ const Navbar = () => {
             <div className="block px-3 py-2 rounded-md text-base font-medium hover:bg-brand-cream hover:text-brand-red">
               <button onClick={handleSignOut} className="flex items-center w-full">
                 <LogOut className="h-5 w-5 mr-2" />
-                Sign Out
+                {t('nav.signOut')}
               </button>
             </div>
           ) : (
@@ -220,7 +223,7 @@ const Navbar = () => {
             >
               <div className="flex items-center">
                 <LogIn className="h-5 w-5 mr-2" />
-                Sign In
+                {t('nav.signIn')}
               </div>
             </Link>
           )}

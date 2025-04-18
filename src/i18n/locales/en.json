@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "orders": "Orders",
+    "cart": "Cart",
+    "about": "About",
+    "bilonaMethod": "Bilona Method",
+    "contact": "Contact",
+    "adminDashboard": "Admin Dashboard",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "hero": {
+    "title": "Fresh Farm Products",
+    "subtitle": "Directly from farmers to your doorstep",
+    "shopNow": "Shop Now"
+  },
+  "footer": {
+    "contact": "Contact Us",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "followUs": "Follow Us",
+    "instagram": "Instagram",
+    "facebook": "Facebook",
+    "twitter": "Twitter"
+  },
+  "products": {
+    "title": "Our Products",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "total": "Total",
+    "placeOrder": "Place Order"
+  }
+}
