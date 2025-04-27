@@ -18,6 +18,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/products';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { format } from 'date-fns';
+
+// Initialize Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface Order {
   id: string;
@@ -279,17 +293,118 @@ const Admin = () => {
     });
   };
 
+  // Calculate sales data
+  const calculateSalesData = (orders: Order[]) => {
+    const salesByMonth = {};
+    orders.forEach(order => {
+      const month = format(new Date(order.created_at), 'MMM yyyy');
+      salesByMonth[month] = (salesByMonth[month] || 0) + order.total;
+    });
+    
+    const labels = Object.keys(salesByMonth);
+    const data = Object.values(salesByMonth);
+    
+    return { labels, data };
+  };
+
+  // Calculate order statistics
+  const calculateOrderStats = (orders: Order[]) => {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    
+    const statusCounts = orders.reduce((acc, order) => {
+      acc[order.status] = (acc[order.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return { totalOrders, totalRevenue, averageOrderValue, statusCounts };
+  };
+
+  // Sales analytics component
+  const SalesAnalytics = ({ orders }: { orders: Order[] }) => {
+    const salesData = calculateSalesData(orders);
+    const orderStats = calculateOrderStats(orders);
+
+    const lineChartData = {
+      labels: salesData.labels,
+      datasets: [
+        {
+          label: 'Monthly Sales',
+          data: salesData.data,
+          fill: false,
+          borderColor: 'rgb(75, 192, 192)',
+          tension: 0.1,
+        },
+      ],
+    };
+
+    const lineChartOptions = {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top' as const,
+        },
+        title: {
+          display: true,
+          text: 'Monthly Sales Trend',
+        },
+      },
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Sales Overview</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h4 className="text-sm font-medium text-blue-600">Total Orders</h4>
+              <p className="text-2xl font-bold">{orderStats.totalOrders}</p>
+            </div>
+            <div className="p-4 bg-green-50 rounded-lg">
+              <h4 className="text-sm font-medium text-green-600">Total Revenue</h4>
+              <p className="text-2xl font-bold">₹{orderStats.totalRevenue.toFixed(2)}</p>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <h4 className="text-sm font-medium text-purple-600">Average Order Value</h4>
+              <p className="text-2xl font-bold">₹{orderStats.averageOrderValue.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Sales Trend</h3>
+          <div className="h-[400px]">
+            <Line data={lineChartData} options={lineChartOptions} />
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Order Status Distribution</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Object.entries(orderStats.statusCounts).map(([status, count]) => (
+              <div key={status} className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-600">{status}</h4>
+                <p className="text-xl font-bold">{count}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl mt-9 font-bold mb-8">Admin Dashboard</h1>
       
-      <Tabs defaultValue="products">
-        <TabsList className="mb-4 flex justify-center">
+      <Tabs defaultValue="products" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="profiles">Customers</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
-
         <TabsContent value="products">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-6">
@@ -623,7 +738,7 @@ const Admin = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="profiles">
+        <TabsContent value="users">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold flex items-center">
@@ -657,6 +772,10 @@ const Admin = () => {
               </Table>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <SalesAnalytics orders={orders} />
         </TabsContent>
       </Tabs>
     </div>
