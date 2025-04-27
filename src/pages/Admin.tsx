@@ -10,13 +10,30 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Plus, SaveIcon, X } from 'lucide-react';
+import { Pencil, Trash2, Plus, SaveIcon, X, Users, ShoppingBag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/products';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface Order {
+  id: string;
+  created_at: string;
+  status: string;
+  total: number;
+  user_id: string;
+  updated_at: string;
+}
+
+interface Profile {
+  id: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const Admin = () => {
   const { toast } = useToast();
@@ -35,7 +52,7 @@ const Admin = () => {
   });
 
   // Fetch products
-  const { data: products = [], isLoading, error } = useQuery<Product[]>({
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery<Product[]>({
     queryKey: ['admin-products'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,6 +62,34 @@ const Admin = () => {
         
       if (error) throw error;
       return data as Product[];
+    },
+  });
+
+  // Fetch orders
+  const { data: orders = [], isLoading: ordersLoading } = useQuery<Order[]>({
+    queryKey: ['admin-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      return data as Order[];
+    },
+  });
+
+  // Fetch profiles
+  const { data: profiles = [], isLoading: profilesLoading } = useQuery<Profile[]>({
+    queryKey: ['admin-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      return data as Profile[];
     },
   });
 
@@ -177,15 +222,24 @@ const Admin = () => {
   };
 
   // Add new product form handlers
-  const handleAddNew = () => {
-    setIsAddingNew(true);
-    setEditingProduct(null);
-  };
-
   const handleNewProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setNewProduct({
       ...newProduct,
       [e.target.name]: e.target.value
+    });
+  };
+
+  const handleCancelNew = () => {
+    setIsAddingNew(false);
+    setNewProduct({
+      title: '',
+      image: '',
+      price: '',
+      unit: '',
+      description: '',
+      full_description: '',
+      ingredients: '',
+      usage_instructions: ''
     });
   };
 
@@ -201,11 +255,11 @@ const Admin = () => {
 
     const productToAdd = {
       ...newProduct,
-      title: newProduct.title || '',
-      image: newProduct.image || 'https://images.unsplash.com/photo-1550583724-b2692b85b150?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      price: newProduct.price || '0',
-      unit: newProduct.unit || 'unit',
-      description: newProduct.description || ''
+      title: newProduct.title ?? '',
+      image: newProduct.image ?? 'https://images.unsplash.com/photo-1550583724-b2692b85b150?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
+      price: newProduct.price ?? '0',
+      unit: newProduct.unit ?? 'unit',
+      description: newProduct.description ?? ''
     };
     
     createProduct.mutate(productToAdd, {
@@ -225,224 +279,272 @@ const Admin = () => {
     });
   };
 
-  const handleCancelNew = () => {
-    setIsAddingNew(false);
-    setNewProduct({
-      title: '',
-      image: '',
-      price: '',
-      unit: '',
-      description: '',
-      full_description: '',
-      ingredients: '',
-      usage_instructions: ''
-    });
-  };
-
   return (
-    <motion.div
-      className="container mx-auto py-20 px-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-display font-bold">Admin Dashboard</h1>
-        <Button onClick={handleAddNew} disabled={isAddingNew || !!editingProduct}>
-          <Plus className="mr-2 h-4 w-4" /> Add New Product
-        </Button>
-      </div>
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl mt-9 font-bold mb-8">Admin Dashboard</h1>
+      
+      <Tabs defaultValue="products">
+        <TabsList className="mb-4 flex justify-center">
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="profiles">Customers</TabsTrigger>
+        </TabsList>
 
-      {isAddingNew && (
-        <div className="mb-8 p-6 border rounded-lg shadow-sm bg-white">
-          <h2 className="text-xl font-semibold mb-4">Add New Product</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <Input 
-                name="title"
-                value={newProduct.title || ''}
-                onChange={handleNewProductChange}
-                placeholder="Product title"
-              />
+        <TabsContent value="products">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Products</h2>
+              {!isAddingNew && (
+                <Button onClick={() => {
+                  setIsAddingNew(true);
+                  setEditingProduct(null);
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add New Product
+                </Button>
+              )}
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Image URL</label>
-              <Input 
-                name="image"
-                value={newProduct.image || ''}
-                onChange={handleNewProductChange}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Price</label>
-              <Input 
-                name="price"
-                value={newProduct.price || ''}
-                onChange={handleNewProductChange}
-                placeholder="100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Unit</label>
-              <Input 
-                name="unit"
-                value={newProduct.unit || ''}
-                onChange={handleNewProductChange}
-                placeholder="1 L, 500g, etc."
-              />
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Short Description</label>
-            <Textarea 
-              name="description"
-              value={newProduct.description || ''}
-              onChange={handleNewProductChange}
-              placeholder="Brief description for product card"
-              rows={2}
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Full Description</label>
-            <Textarea 
-              name="full_description"
-              value={newProduct.full_description || ''}
-              onChange={handleNewProductChange}
-              placeholder="Detailed product description"
-              rows={4}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium mb-1">Ingredients</label>
-              <Textarea 
-                name="ingredients"
-                value={newProduct.ingredients || ''}
-                onChange={handleNewProductChange}
-                placeholder="Product ingredients"
-                rows={3}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Usage Instructions</label>
-              <Textarea 
-                name="usage_instructions"
-                value={newProduct.usage_instructions || ''}
-                onChange={handleNewProductChange}
-                placeholder="How to use the product"
-                rows={3}
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={handleCancelNew}>
-              <X className="mr-2 h-4 w-4" /> Cancel
-            </Button>
-            <Button onClick={handleSaveNew}>
-              <SaveIcon className="mr-2 h-4 w-4" /> Save Product
-            </Button>
-          </div>
-        </div>
-      )}
 
-      {isLoading ? (
-        <div className="text-center py-12">
-          <p>Loading products...</p>
-        </div>
-      ) : error ? (
-        <div className="text-center py-12">
-          <p className="text-red-500">Error loading products. Please try again.</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <Table>
-            <TableCaption>Manage your product inventory</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Image</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product: Product) => (
-                <TableRow key={product.id}>
-                  {editingProduct && editingProduct.id === product.id ? (
-                    <>
-                      <TableCell>{product.id.slice(0, 8)}...</TableCell>
-                      <TableCell>
-                        <Input 
-                          name="image"
-                          value={editingProduct.image}
-                          onChange={handleEditChange}
-                          className="w-full"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input 
-                          name="title"
-                          value={editingProduct.title}
-                          onChange={handleEditChange}
-                          className="w-full"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input 
-                          name="price"
-                          value={editingProduct.price}
-                          onChange={handleEditChange}
-                          className="w-full"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input 
-                          name="unit"
-                          value={editingProduct.unit}
-                          onChange={handleEditChange}
-                          className="w-full"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Textarea 
-                          name="description"
-                          value={editingProduct.description}
-                          onChange={handleEditChange}
-                          className="w-full"
-                          rows={2}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                            <X className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" onClick={handleSaveEdit}>
-                            <SaveIcon className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </>
-                  ) : (
-                    <>
-                      <TableCell>{product.id.slice(0, 8)}...</TableCell>
-                      <TableCell>
-                        <img 
-                          src={product.image} 
-                          alt={product.title} 
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      </TableCell>
+            {isAddingNew && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 border rounded-lg"
+              >
+                <h3 className="text-lg font-medium mb-4">Add New Product</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="new-title" className="block text-sm font-medium mb-1">Title</label>
+                    <Input 
+                      id="new-title"
+                      name="title"
+                      value={newProduct.title ?? ''}
+                      onChange={handleNewProductChange}
+                      placeholder="Product title"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="new-image" className="block text-sm font-medium mb-1">Image URL</label>
+                    <Input 
+                      id="new-image"
+                      name="image"
+                      value={newProduct.image ?? ''}
+                      onChange={handleNewProductChange}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="new-price" className="block text-sm font-medium mb-1">Price</label>
+                    <Input 
+                      id="new-price"
+                      name="price"
+                      value={newProduct.price ?? ''}
+                      onChange={handleNewProductChange}
+                      placeholder="100"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="new-unit" className="block text-sm font-medium mb-1">Unit</label>
+                    <Input 
+                      id="new-unit"
+                      name="unit"
+                      value={newProduct.unit ?? ''}
+                      onChange={handleNewProductChange}
+                      placeholder="1 L, 500g, etc."
+                    />
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="new-description" className="block text-sm font-medium mb-1">Short Description</label>
+                  <Textarea 
+                    id="new-description"
+                    name="description"
+                    value={newProduct.description ?? ''}
+                    onChange={handleNewProductChange}
+                    placeholder="Brief description for product card"
+                    rows={2}
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="new-full-description" className="block text-sm font-medium mb-1">Full Description</label>
+                  <Textarea 
+                    id="new-full-description"
+                    name="full_description"
+                    value={newProduct.full_description ?? ''}
+                    onChange={handleNewProductChange}
+                    placeholder="Detailed product description"
+                    rows={4}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label htmlFor="new-ingredients" className="block text-sm font-medium mb-1">Ingredients</label>
+                    <Textarea 
+                      id="new-ingredients"
+                      name="ingredients"
+                      value={newProduct.ingredients ?? ''}
+                      onChange={handleNewProductChange}
+                      placeholder="Product ingredients"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="new-usage-instructions" className="block text-sm font-medium mb-1">Usage Instructions</label>
+                    <Textarea 
+                      id="new-usage-instructions"
+                      name="usage_instructions"
+                      value={newProduct.usage_instructions ?? ''}
+                      onChange={handleNewProductChange}
+                      placeholder="How to use the product"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={handleCancelNew}>
+                    <X className="mr-2 h-4 w-4" /> Cancel
+                  </Button>
+                  <Button onClick={handleSaveNew}>
+                    <SaveIcon className="mr-2 h-4 w-4" /> Save Product
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {editingProduct && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 border rounded-lg"
+              >
+                <h3 className="text-lg font-medium mb-4">Edit Product</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="edit-title" className="block text-sm font-medium mb-1">Title</label>
+                    <Input 
+                      id="edit-title"
+                      name="title"
+                      value={editingProduct.title}
+                      onChange={handleEditChange}
+                      placeholder="Product title"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-image" className="block text-sm font-medium mb-1">Image URL</label>
+                    <Input 
+                      id="edit-image"
+                      name="image"
+                      value={editingProduct.image}
+                      onChange={handleEditChange}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-price" className="block text-sm font-medium mb-1">Price</label>
+                    <Input 
+                      id="edit-price"
+                      name="price"
+                      value={editingProduct.price}
+                      onChange={handleEditChange}
+                      placeholder="100"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-unit" className="block text-sm font-medium mb-1">Unit</label>
+                    <Input 
+                      id="edit-unit"
+                      name="unit"
+                      value={editingProduct.unit}
+                      onChange={handleEditChange}
+                      placeholder="1 L, 500g, etc."
+                    />
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="edit-description" className="block text-sm font-medium mb-1">Short Description</label>
+                  <Textarea 
+                    id="edit-description"
+                    name="description"
+                    value={editingProduct.description}
+                    onChange={handleEditChange}
+                    placeholder="Brief description for product card"
+                    rows={2}
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="edit-full-description" className="block text-sm font-medium mb-1">Full Description</label>
+                  <Textarea 
+                    id="edit-full-description"
+                    name="full_description"
+                    value={editingProduct.full_description}
+                    onChange={handleEditChange}
+                    placeholder="Detailed product description"
+                    rows={4}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label htmlFor="edit-ingredients" className="block text-sm font-medium mb-1">Ingredients</label>
+                    <Textarea 
+                      id="edit-ingredients"
+                      name="ingredients"
+                      value={editingProduct.ingredients}
+                      onChange={handleEditChange}
+                      placeholder="Product ingredients"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-usage-instructions" className="block text-sm font-medium mb-1">Usage Instructions</label>
+                    <Textarea 
+                      id="edit-usage-instructions"
+                      name="usage_instructions"
+                      value={editingProduct.usage_instructions}
+                      onChange={handleEditChange}
+                      placeholder="How to use the product"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={handleCancelEdit}>
+                    <X className="mr-2 h-4 w-4" /> Cancel
+                  </Button>
+                  <Button onClick={handleSaveEdit}>
+                    <SaveIcon className="mr-2 h-4 w-4" /> Save Product
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {productsLoading ? (
+              <div>Loading products...</div>
+            ) : productsError ? (
+              <div>Error loading products</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
                       <TableCell>{product.title}</TableCell>
                       <TableCell>₹{product.price}</TableCell>
                       <TableCell>{product.unit}</TableCell>
@@ -467,15 +569,97 @@ const Admin = () => {
                           </Button>
                         </div>
                       </TableCell>
-                    </>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </motion.div>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold flex items-center">
+                <ShoppingBag className="w-6 h-6 mr-2" />
+                Orders
+              </h2>
+            </div>
+
+            {ordersLoading ? (
+              <div>Loading orders...</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>User ID</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell>{order.id}</TableCell>
+                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-sm ${
+                          order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>${order.total.toFixed(2)}</TableCell>
+                      <TableCell>{order.user_id}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="profiles">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold flex items-center">
+                <Users className="w-6 h-6 mr-2" />
+                User Profiles
+              </h2>
+            </div>
+
+            {profilesLoading ? (
+              <div>Loading profiles...</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User ID</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Joined Date</TableHead>
+                    <TableHead>Last Updated</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {profiles.map((profile) => (
+                    <TableRow key={profile.id}>
+                      <TableCell>{profile.id}</TableCell>
+                      <TableCell>{profile.email}</TableCell>
+                      <TableCell>{new Date(profile.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(profile.updated_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
