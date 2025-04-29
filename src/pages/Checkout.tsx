@@ -187,7 +187,7 @@ const Checkout = () => {
     setPaymentProcessing(true);
     
     const options: RazorpayOptions = {
-      key: 'rzp_test_N8MLCvpxuLueYZ', // Replace with your Razorpay key ID
+      key: 'rzp_live_OtMj4vjVpeRjg8', // Replace with your Razorpay key ID
       amount: total * 100, // Razorpay expects amount in paise (1 INR = 100 paise)
       currency: 'INR',
       name: 'SCR Farms',
