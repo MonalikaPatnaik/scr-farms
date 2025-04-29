@@ -22,7 +22,7 @@ const Footer = () => {
               </div>
               <div className="flex items-start">
                 <Mail className="h-5 w-5 text-brand-red mt-0.5 mr-2" />
-                <p className="text-sm">info@scragrofarms.com</p>
+                <p className="text-sm">scragro79@gmail.com</p>
               </div>
               <div className="flex items-start">
                 <MapPin className="h-5 w-5 text-brand-red mt-0.5 mr-2" />

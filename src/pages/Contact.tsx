@@ -71,7 +71,7 @@ const Contact = () => {
                   <Mail className="h-6 w-6 text-brand-red mt-1 mr-4" />
                   <div>
                     <h3 className="font-semibold mb-2">Email</h3>
-                    <p className="font-medium text-brand-red">info@scragrofarms.com</p>
+                    <p className="font-medium text-brand-red">scragro79@gmail.com</p>
                     <p className="text-sm mt-2">We'll respond to your email within 24 hours</p>
                   </div>
                 </div>

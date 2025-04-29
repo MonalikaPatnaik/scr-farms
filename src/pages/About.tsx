@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Leaf, Users, Award, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import sahiwal from '../../public/sahiwal.png';
+import farm from '../../public/farm.png';
 
 const About = () => {
   return (
@@ -71,7 +73,7 @@ const About = () => {
             >
               <div className="aspect-w-4 aspect-h-3 rounded-2xl overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1560701795-3fc6fb2a8d8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  src={farm} 
                   alt="SCR Agro Farms" 
                   className="object-cover w-full h-full"
                 />
@@ -177,26 +179,26 @@ const About = () => {
             <div className="order-2 lg:order-1">
               <div className="aspect-w-4 aspect-h-3 rounded-2xl overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  src={sahiwal} 
                   alt="Sahiwal Cows" 
                   className="object-cover w-full h-full"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="aspect-w-1 aspect-h-1 rounded-xl overflow-hidden">
+                {/* <div className="aspect-w-1 aspect-h-1 rounded-xl overflow-hidden">
                   <img 
                     src="https://images.unsplash.com/photo-1546445317-29f4545e9d13?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
                     alt="Cow grazing" 
                     className="object-cover w-full h-full"
                   />
-                </div>
-                <div className="aspect-w-1 aspect-h-1 rounded-xl overflow-hidden">
+                </div> */}
+                {/* <div className="aspect-w-1 aspect-h-1 rounded-xl overflow-hidden">
                   <img 
                     src="https://images.unsplash.com/photo-1527153619-3db94658e218?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
                     alt="Cow closeup" 
                     className="object-cover w-full h-full"
                   />
-                </div>
+                </div> */}
               </div>
             </div>
             

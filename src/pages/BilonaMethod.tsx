@@ -3,6 +3,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import BenefitCard from '@/components/BenefitCard';
 import { Heart, FlaskConical, Leaf, Clock } from 'lucide-react';
+import cow from '../../public/cow.png';
+import ghee from '../../public/ghee.png';
+import curd from '../../public/curd.png';
+import churn from '../../public/churn.png';
+import packaging from '../../public/package.png';
+import filter from '../../public/filter.png';
 
 const BilonaMethod = () => {
   return (
@@ -66,7 +72,7 @@ const BilonaMethod = () => {
             >
               <div className="aspect-w-4 aspect-h-3 rounded-2xl overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1628088062854-d1870b4553da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  src={packaging} 
                   alt="Traditional Bilona Method" 
                   className="object-cover w-full h-full"
                 />
@@ -117,7 +123,7 @@ const BilonaMethod = () => {
                   <div className="w-1/2 pl-8">
                     <div className="aspect-w-4 aspect-h-3 rounded-xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1604859345884-bdf3336406e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
+                        src={cow} 
                         alt="Milking cows" 
                         className="object-cover w-full h-full"
                       />
@@ -139,7 +145,7 @@ const BilonaMethod = () => {
                   <div className="w-1/2 pr-8">
                     <div className="aspect-w-4 aspect-h-3 rounded-xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1595415336605-8a579c2700b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
+                        src={curd}
                         alt="Curd setting" 
                         className="object-cover w-full h-full"
                       />
@@ -177,7 +183,7 @@ const BilonaMethod = () => {
                   <div className="w-1/2 pl-8">
                     <div className="aspect-w-4 aspect-h-3 rounded-xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1535608953128-78582b968a92?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
+                        src={churn} 
                         alt="Traditional churning" 
                         className="object-cover w-full h-full"
                       />
@@ -199,7 +205,7 @@ const BilonaMethod = () => {
                   <div className="w-1/2 pr-8">
                     <div className="aspect-w-4 aspect-h-3 rounded-xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1610138254740-4fcf15c30c7f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
+                        src={ghee} 
                         alt="Making ghee" 
                         className="object-cover w-full h-full"
                       />
@@ -237,7 +243,7 @@ const BilonaMethod = () => {
                   <div className="w-1/2 pl-8">
                     <div className="aspect-w-4 aspect-h-3 rounded-xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1631983723746-6e7a107e2c6a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
+                        src={filter}
                         alt="Filtering ghee" 
                         className="object-cover w-full h-full"
                       />
@@ -259,7 +265,7 @@ const BilonaMethod = () => {
                   <div className="w-1/2 pr-8">
                     <div className="aspect-w-4 aspect-h-3 rounded-xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1620705776162-9e8ca34c1b5c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
+                        src={packaging}
                         alt="Packaging products" 
                         className="object-cover w-full h-full"
                       />

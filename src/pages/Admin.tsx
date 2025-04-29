@@ -728,7 +728,7 @@ const Admin = () => {
                           {order.status}
                         </span>
                       </TableCell>
-                      <TableCell>${order.total.toFixed(2)}</TableCell>
+                      <TableCell>Rs. {order.total.toFixed(2)}</TableCell>
                       <TableCell>{order.user_id}</TableCell>
                     </TableRow>
                   ))}
