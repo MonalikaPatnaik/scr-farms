@@ -6,7 +6,7 @@ import SearchBar from '@/components/SearchBar';
 import { supabase } from '../integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Product } from '@/types/products';
-
+import sahiwal from "../../public/sahiwal.png";
 const Products = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
@@ -142,7 +142,7 @@ const Products = () => {
             <div>
               <div className="aspect-w-4 aspect-h-3 rounded-2xl overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1586370434639-0fe7fab3469a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  src={sahiwal}
                   alt="A2 Sahiwal Cows" 
                   className="object-cover w-full h-full"
                 />
