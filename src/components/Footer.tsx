@@ -96,7 +96,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-display font-semibold">Find Us</h3>
             <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-              <a href="https://photos.app.goo.gl/HTgcZq32qB4sE9rM6" target="_blank" rel="noopener noreferrer">
+              <a href="https://maps.app.goo.gl/GFjcUSabcUGjdZnd7" target="_blank" rel="noopener noreferrer">
                 <div className="aspect-w-4 aspect-h-3 bg-gray-100 flex items-center justify-center">
                   <div className="p-4 text-center">
                     <MapPin className="h-6 w-6 mx-auto text-brand-red mb-2" />

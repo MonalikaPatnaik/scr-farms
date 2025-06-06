@@ -220,11 +220,11 @@ const Index = () => {
               Order now and have farm-fresh dairy products delivered right to your doorstep.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button size="lg" className="bg-white text-brand-red hover:bg-brand-cream">
+              <Button size="lg" variant="outline" className="border-white text-brand-red hover:bg-white/10">
                 Order Now
               </Button>
               <Link to="/contact">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                <Button size="lg" variant="outline" className="border-white text-brand-red hover:bg-white/10">
                   Contact Us
                 </Button>
               </Link>

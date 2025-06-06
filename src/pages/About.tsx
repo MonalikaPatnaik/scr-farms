@@ -249,7 +249,7 @@ const About = () => {
                 SCR Agrofarms, NH-40, Gyrampalli, Annamaya Dist, AP-517213
               </p>
               <a 
-                href="https://photos.app.goo.gl/HTgcZq32qB4sE9rM6" 
+                href="https://maps.app.goo.gl/GFjcUSabcUGjdZnd7" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-block text-brand-red hover:underline mb-4"

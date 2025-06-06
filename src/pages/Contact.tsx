@@ -82,7 +82,7 @@ const Contact = () => {
                     <h3 className="font-semibold mb-2">Address</h3>
                     <p className="mb-2">SCR Agrofarms, NH-40, Gyrampalli, Annamaya Dist, AP-517213</p>
                     <a 
-                      href="https://photos.app.goo.gl/HTgcZq32qB4sE9rM6" 
+                      href="https://maps.app.goo.gl/GFjcUSabcUGjdZnd7" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-brand-red hover:underline text-sm"
